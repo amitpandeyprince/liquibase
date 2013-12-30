@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="liquibase">
+    <property file="liquibase.properties"/>
+    <property name="project.jdk.home" value="${jdk.home.1.6}"/>
+    <property name="project.jdk.classpath" value="jdk.classpath.1.6"/>
+
+    <target name="prepare">
+        <path id="classpath">
+            <fileset dir="lib">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+
+    <target name="diff-database" depends="prepare">
+
+        <taskdef resource="liquibasetasks.properties">
+            <classpath refid="classpath"/>
+        </taskdef>
+
+        <diffDatabase
+                driver="${source.driver}"
+                url="${source.url}"
+                username="${source.username}"
+                password="${source.password}"
+
+                referenceUrl="${target.url}"
+                referenceUsername="${target.username}"
+                referencePassword="${target.password}"
+                outputFile="${db.diff.file}"
+                classpathref="classpath"
+                >
+        </diffDatabase>
+    </target>
+
+    <target name="generateChangelog" depends="prepare">
+        <fail unless="source.url">database.url not set</fail>
+
+        <fail unless="source.username">database.username not set</fail>
+        <fail unless="source.password">database.password not set</fail>
+
+        <taskdef resource="liquibasetasks.properties">
+            <classpath refid="classpath"/>
+        </taskdef>
+
+        <generateChangeLog
+                outputFile="${db.changelog.file}"
+                driver="${source.driver}"
+                url="${source.url}"
+                username="${source.username}"
+                password="${source.password}"
+                classpathref="classpath"
+                />
+    </target>
+
+    <target name="sync-database" depends="prepare">
+        <fail unless="db.changelog.file">db.changelog.file not set</fail>
+        <fail unless="target.url">database.url not set</fail>
+
+        <fail unless="target.username">database.username not set</fail>
+        <fail unless="target.password">database.password not set</fail>
+
+        <taskdef resource="liquibasetasks.properties">
+            <classpath refid="classpath"/>
+
+        </taskdef>
+
+        <changeLogSync
+                changeLogFile="${db.changelog.file}"
+                driver="${target.driver}"
+                url="${target.url}"
+                username="${target.username}"
+                password="${target.password}"
+                classpathref="classpath"
+                >
+        </changeLogSync>
+    </target>
+
+    <target name="update-database" depends="prepare">
+        <fail unless="db.changelog.file">db.changelog.file not set</fail>
+        <fail unless="target.url">database.url not set</fail>
+
+        <fail unless="target.username">database.username not set</fail>
+        <fail unless="target.password">database.password not set</fail>
+
+        <taskdef resource="liquibasetasks.properties">
+            <classpath refid="classpath"/>
+
+        </taskdef>
+
+        <updateDatabase
+                changeLogFile="${db.changelog.file}"
+                driver="${target.driver}"
+                url="${target.url}"
+                username="${target.username}"
+                password="${target.password}"
+                promptOnNonLocalDatabase="false"
+                dropFirst="true"
+                classpathref="classpath"
+                />
+
+    </target>
+
+</project>

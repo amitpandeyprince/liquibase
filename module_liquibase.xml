@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_liquibase" default="compile.module.liquibase">
+  <dirname property="module.liquibase.basedir" file="${ant.file.module_liquibase}"/>
+  
+  <property name="module.jdk.home.liquibase" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.liquibase" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.liquibase" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.liquibase" value="${compiler.args}"/>
+  
+  <property name="liquibase.output.dir" value="${module.liquibase.basedir}/target/classes"/>
+  <property name="liquibase.testoutput.dir" value="${module.liquibase.basedir}/target/test-classes"/>
+  
+  <path id="liquibase.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="liquibase.module.production.classpath">
+    <path refid="${module.jdk.classpath.liquibase}"/>
+  </path>
+  
+  <path id="liquibase.runtime.production.module.classpath">
+    <pathelement location="${liquibase.output.dir}"/>
+  </path>
+  
+  <path id="liquibase.module.classpath">
+    <path refid="${module.jdk.classpath.liquibase}"/>
+    <pathelement location="${liquibase.output.dir}"/>
+  </path>
+  
+  <path id="liquibase.runtime.module.classpath">
+    <pathelement location="${liquibase.testoutput.dir}"/>
+    <pathelement location="${liquibase.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.liquibase">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.liquibase">
+    <patternset refid="excluded.from.module.liquibase"/>
+  </patternset>
+  
+  <path id="liquibase.module.sourcepath">
+    <dirset dir="${module.liquibase.basedir}">
+      <include name="src/main/java"/>
+      <include name="src/main/resources"/>
+    </dirset>
+  </path>
+  
+  <path id="liquibase.module.test.sourcepath">
+    <dirset dir="${module.liquibase.basedir}">
+      <include name="src/test/java"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.liquibase" depends="compile.module.liquibase.production,compile.module.liquibase.tests" description="Compile module liquibase"/>
+  
+  <target name="compile.module.liquibase.production" depends="register.custom.compilers" description="Compile module liquibase; production classes">
+    <mkdir dir="${liquibase.output.dir}"/>
+    <javac2 destdir="${liquibase.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.liquibase}/javac">
+      <compilerarg line="${compiler.args.liquibase}"/>
+      <bootclasspath refid="liquibase.module.bootclasspath"/>
+      <classpath refid="liquibase.module.production.classpath"/>
+      <src refid="liquibase.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.liquibase"/>
+    </javac2>
+    
+    <copy todir="${liquibase.output.dir}">
+      <fileset dir="${module.liquibase.basedir}/src/main/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.liquibase.basedir}/src/main/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.liquibase.tests" depends="register.custom.compilers,compile.module.liquibase.production" description="compile module liquibase; test classes" unless="skip.tests">
+    <mkdir dir="${liquibase.testoutput.dir}"/>
+    <javac2 destdir="${liquibase.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.liquibase}/javac">
+      <compilerarg line="${compiler.args.liquibase}"/>
+      <bootclasspath refid="liquibase.module.bootclasspath"/>
+      <classpath refid="liquibase.module.classpath"/>
+      <src refid="liquibase.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.liquibase"/>
+    </javac2>
+    
+    <copy todir="${liquibase.testoutput.dir}">
+      <fileset dir="${module.liquibase.basedir}/src/test/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.liquibase" description="cleanup module">
+    <delete dir="${liquibase.output.dir}"/>
+    <delete dir="${liquibase.testoutput.dir}"/>
+  </target>
+</project>
